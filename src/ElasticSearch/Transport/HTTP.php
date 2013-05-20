@@ -34,8 +34,6 @@ class HTTP extends Base {
     public $connect_timeout = 5000;
 	
     public function __construct($host='localhost', $port=9200) {
-        $this->timeout = $timeout;
-        $this->connect_timeout = $timeout;
         parent::__construct($host, $port);
         $this->ch = curl_init();
     }

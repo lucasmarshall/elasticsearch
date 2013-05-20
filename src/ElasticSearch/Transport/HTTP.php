@@ -18,18 +18,24 @@ if (!defined('CURLE_OPERATION_TIMEDOUT'))
 class HTTP extends Base {
     
     /**
-     * How long before timing out CURL call
-     */
-    const TIMEOUT = 5;
-	
-    /**
      * curl handler which is needed for reusing existing http connection to the server
      * @var resource
      */
     protected $ch;
+
+    /**
+     * @var CURL timeout in ms
+     */
+    public $timeout = 5000;
 	
+    /**
+     * @var CURL connect timeout in ms
+     */
+    public $connect_timeout = 5000;
 	
     public function __construct($host='localhost', $port=9200) {
+        $this->timeout = $timeout;
+        $this->connect_timeout = $timeout;
         parent::__construct($host, $port);
         $this->ch = curl_init();
     }
@@ -150,7 +156,17 @@ class HTTP extends Base {
         $protocol = "http";
         $requestURL = $protocol . "://" . $this->host . $url;
         curl_setopt($conn, CURLOPT_URL, $requestURL);
-        curl_setopt($conn, CURLOPT_TIMEOUT, self::TIMEOUT);
+
+        if (defined(CURLOPT_CONNECTTIMEOUT_MS))
+            curl_setopt($conn, CURLOPT_TIMEOUT_MS, $this->timeout);
+        else
+            curl_setopt($conn, CURLOPT_TIMEOUT, $this->timeout/1000);
+
+        if (defined(CURLOPT_CONNECTTIMEOUT_MS))
+            curl_setopt($conn, CURLOPT_CONNECTTIMEOUT_MS, $this->connect_timeout);
+        else
+            curl_setopt($conn, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout/1000);
+
         curl_setopt($conn, CURLOPT_PORT, $this->port);
         curl_setopt($conn, CURLOPT_RETURNTRANSFER, 1) ;
         curl_setopt($conn, CURLOPT_CUSTOMREQUEST, strtoupper($method));

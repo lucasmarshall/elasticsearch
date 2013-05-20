@@ -77,6 +77,13 @@ class Client {
         $server = is_array($config['servers']) ? $config['servers'][0] : $config['servers'];
         list($host, $port) = explode(':', $server);
         $transport = new $class($host, $port);
+
+        if (isset($config['timeout']))
+            $transport->timeout = $config['timeout'];
+
+        if (isset($config['connect_timeout']))
+            $transport->timeout = $config['timeout'];
+
         $client = new self($transport, $config['index'], $config['type']);
         $client->config($config);
         return $client;
@@ -265,13 +272,20 @@ class Client {
      * @return array
      */
     protected static function parseDsn($dsn) {
-        $parts = parse_url($dsn);
-        $protocol = $parts['scheme'];
-        $servers = $parts['host'] . ':' . $parts['port'];
+        $dsn_data = array();
+        $dsn_data['parts'] = parse_url($dsn);
+        $dsn_data['protocol'] = $parts['scheme'];
+        $dsn_data['servers'] = $parts['host'] . ':' . $parts['port'];
         if (isset($parts['path'])) {
             $path = explode('/', $parts['path']);
-            list($index, $type) = array_values(array_filter($path));
+            list($dsn_data['index'], $dsn_data['type']) = array_values(array_filter($path));
         }
-        return compact('protocol', 'servers', 'index', 'type');
+
+        if (isset($parts['query']))
+        {
+            $dsn_data = array_merge($dsn_data, parse_str($parts['query']));
+        }
+
+        return $dsn_data;
     }
 }
